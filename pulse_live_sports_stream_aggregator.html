@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ARENA // LIVE — Sports Broadcast Network</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts: Outfit, Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+            display: ['Outfit', 'Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            obsidian: {
+              950: '#06080d',
+              900: '#090d15',
+              850: '#0f141f',
+              800: '#151c2c',
+              700: '#1e293b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      color-scheme: dark;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #06080d;
+      color: #f8fafc;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Broadcast dot-grid backdrop */
+    .bg-broadcast-grid {
+      background-color: #06080d;
+      background-image:
+        radial-gradient(at 20% 0%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
+        radial-gradient(at 80% 0%, rgba(6, 182, 212, 0.06) 0px, transparent 50%),
+        radial-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 0);
+      background-size: 100% 100%, 100% 100%, 28px 28px;
+    }
+
+    /* Glassmorphic surfaces */
+    .glass-nav {
+      background: rgba(9, 13, 21, 0.82);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .glass-panel {
+      background: rgba(15, 20, 31, 0.72);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+    }
+
+    .channel-card {
+      background: linear-gradient(165deg, rgba(21, 28, 44, 0.75) 0%, rgba(12, 16, 26, 0.88) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .channel-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(16, 185, 129, 0.45);
+      box-shadow: 0 22px 48px -12px rgba(0, 0, 0, 0.75), 0 0 32px -8px rgba(16, 185, 129, 0.22);
+    }
+
+    .glass-pill {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .glass-pill:hover {
+      background: rgba(255, 255, 255, 0.09);
+      border-color: rgba(255, 255, 255, 0.18);
+    }
+
+    /* Splash Screen Orbit & Exit */
+    @keyframes pulseRing {
+      0%, 100% { transform: scale(0.94); opacity: 0.5; }
+      50% { transform: scale(1.08); opacity: 0.14; }
+    }
+
+    .animate-ring {
+      animation: pulseRing 2.2s ease-in-out infinite;
+    }
+
+    .splash-hidden {
+      opacity: 0;
+      transform: scale(1.03);
+      pointer-events: none;
+    }
+
+    /* Equalizer Bars for Active Channel in Sidebar */
+    @keyframes eqBar1 { 0%, 100% { height: 4px; } 50% { height: 14px; } }
+    @keyframes eqBar2 { 0%, 100% { height: 14px; } 33% { height: 5px; } 66% { height: 11px; } }
+    @keyframes eqBar3 { 0%, 100% { height: 7px; } 40% { height: 15px; } 80% { height: 4px; } }
+
+    .eq-bar-1 { animation: eqBar1 0.85s ease-in-out infinite; }
+    .eq-bar-2 { animation: eqBar2 0.75s ease-in-out infinite; }
+    .eq-bar-3 { animation: eqBar3 0.95s ease-in-out infinite; }
+
+    /* Ambient Stadium Backlight behind the 16:9 Player */
+    .stadium-backlight {
+      position: absolute;
+      inset: -24px;
+      background: radial-gradient(circle at 50% 45%, rgba(16, 185, 129, 0.20), rgba(6, 182, 212, 0.09) 45%, transparent 72%);
+      filter: blur(44px);
+      z-index: 0;
+      pointer-events: none;
+      transition: opacity 0.45s ease;
+    }
+
+    /* Custom subtle scrollbars */
+    ::-webkit-scrollbar {
+      width: 5px;
+      height: 5px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.14);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(255, 255, 255, 0.28);
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col bg-broadcast-grid selection:bg-emerald-500/30 selection:text-emerald-200">
+
+  <!-- ===================================================================== -->
+  <!-- 1. CINEMATIC BROADCAST SPLASH SCREEN                                  -->
+  <!-- ===================================================================== -->
+  <div id="splashScreen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-obsidian-950 transition-all duration-700 ease-out">
+    <div class="absolute w-[28rem] h-[28rem] rounded-full bg-emerald-500/10 blur-[130px] pointer-events-none"></div>
+
+    <!-- Animated Broadcast Emblem -->
+    <div class="relative flex items-center justify-center w-24 h-24 mb-7">
+      <div class="absolute inset-0 rounded-3xl border border-emerald-500/30 animate-ring"></div>
+      <div class="relative flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-obsidian-800 to-obsidian-950 border border-white/15 shadow-2xl">
+        <svg class="w-7 h-7 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <polygon points="6 4 20 12 6 20 6 4" fill="currentColor" fill-opacity="0.22" stroke-linejoin="round"></polygon>
+        </svg>
+        <span class="absolute -top-1 -right-1 flex h-3 w-3">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500"></span>
+        </span>
+      </div>
+    </div>
+
+    <!-- Brand Identity -->
+    <div class="flex items-center gap-3 mb-2">
+      <span class="font-display text-2xl sm:text-3xl font-extrabold tracking-[0.28em] text-white">ARENA</span>
+      <span class="text-emerald-400 font-mono text-base font-bold">//</span>
+      <span class="text-[11px] font-mono font-semibold uppercase tracking-[0.22em] px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+        LIVE
+      </span>
+    </div>
+
+    <p id="splashStatusText" class="text-xs text-slate-400 tracking-wide mb-7">
+      Loading channel lineup...
+    </p>
+
+    <!-- Minimal Progress Track -->
+    <div class="w-56 h-[2px] bg-white/10 rounded-full overflow-hidden">
+      <div id="splashProgressBar" class="h-full bg-gradient-to-r from-emerald-500 via-emerald-400 to-cyan-400 transition-all duration-300 ease-out" style="width: 15%"></div>
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- 2. STICKY TOP BROADCAST NAVBAR                                        -->
+  <!-- ===================================================================== -->
+  <header class="sticky top-0 z-40 h-14 sm:h-16 glass-nav px-3 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
+    <!-- Left: Back to Channels Button (Watch View) + Brand Logo -->
+    <div class="flex items-center gap-2.5 sm:gap-4 min-w-0">
+      <button
+        id="navBackToHomeBtn"
+        onclick="navigateToHome()"
+        class="hidden items-center gap-1.5 px-3 py-1.5 rounded-xl glass-pill text-xs font-medium text-slate-200 hover:text-white shrink-0"
+        title="Return to All Channels (Esc)"
+      >
+        <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <line x1="19" y1="12" x2="5" y2="12"></line>
+          <polyline points="12 19 5 12 12 5"></polyline>
+        </svg>
+        <span>All Channels</span>
+      </button>
+
+      <!-- Brand Logo -->
+      <div onclick="navigateToHome()" class="flex items-center gap-2.5 cursor-pointer select-none group">
+        <div class="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center group-hover:border-emerald-400/60 transition-colors">
+          <svg class="w-4 h-4 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+            <polygon points="6 4 20 12 6 20 6 4" fill="currentColor" fill-opacity="0.25" stroke-linejoin="round"></polygon>
+          </svg>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="font-display font-bold tracking-[0.2em] text-sm sm:text-base text-white">ARENA</span>
+          <span class="text-emerald-400 font-mono text-xs">//</span>
+          <span class="text-[10px] font-mono uppercase tracking-widest px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 font-semibold">
+            LIVE
+          </span>
+        </div>
+      </div>
+
+      <!-- On-Air Count Pill -->
+      <div class="hidden md:flex items-center gap-2 pl-3 border-l border-white/10 text-xs text-slate-400">
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span id="navOnAirCount" class="font-mono text-[11px] text-slate-300">4 CHANNELS ON AIR</span>
+      </div>
+    </div>
+
+    <!-- Right: Contextual Actions (Return to Player / Cinema Mode / Reload Channels) -->
+    <div class="flex items-center gap-2 shrink-0">
+      <!-- Return to Player Pill (Shown on Home View if user previously watched a channel) -->
+      <button
+        id="navResumePlayerBtn"
+        onclick="resumeLastChannel()"
+        class="hidden items-center gap-2 px-3.5 py-1.5 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/35 text-emerald-300 text-xs font-semibold transition-all"
+      >
+        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+        <span id="navResumePlayerText">Resume Sports 1</span>
+      </button>
+
+      <!-- Desktop Cinema Mode Toggle (Shown in Watch View) -->
+      <button
+        id="navCinemaBtn"
+        onclick="toggleCinemaMode()"
+        title="Toggle Cinema Mode (T)"
+        class="hidden lg:hidden items-center gap-1.5 px-3 py-1.5 rounded-xl glass-pill text-xs font-medium text-slate-300 hover:text-white"
+      >
+        <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+        </svg>
+        <span id="navCinemaLabel">Cinema Mode</span>
+      </button>
+
+      <!-- Reload Channels (Re-fetches ./channels.json without full reload) -->
+      <button
+        onclick="reloadChannelsJson(true)"
+        title="Reload channels.json"
+        class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass-pill text-xs font-medium text-slate-300 hover:text-white"
+      >
+        <svg id="reloadChannelsIcon" class="w-3.5 h-3.5 text-emerald-400 transition-transform duration-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+          <path d="M3 3v5h5"/>
+          <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+          <path d="M16 16h5v5"/>
+        </svg>
+        <span class="hidden sm:inline">Reload Channels</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===================================================================== -->
+  <!-- 3. VIEW A: THE HOME HUB (CLEAN CHANNEL LINEUP — NO AUTOPLAY NOISE)    -->
+  <!-- ===================================================================== -->
+  <main id="homeView" class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-9 space-y-7">
+
+    <!-- Compact Hero Broadcast Strip -->
+    <section class="relative overflow-hidden rounded-3xl glass-panel p-6 sm:p-8 border border-white/10 shadow-2xl">
+      <div class="absolute -top-24 -right-24 w-80 h-80 bg-emerald-500/15 rounded-full blur-[90px] pointer-events-none"></div>
+      <div class="absolute -bottom-24 -left-24 w-72 h-72 bg-cyan-500/10 rounded-full blur-[90px] pointer-events-none"></div>
+
+      <div class="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div class="space-y-2.5 max-w-2xl">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-[11px] font-mono uppercase tracking-widest">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+            Live Broadcast Hub • Multi-Source HD
+          </div>
+          <h1 class="font-display text-2xl sm:text-4xl font-extrabold text-white tracking-tight">
+            Select a Channel to Enter the Stadium
+          </h1>
+          <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
+            Instant access to live sports channels with automatic dynamic stream routing and multiple backup feeds per channel. Click any channel card below to launch the live player.
+          </p>
+        </div>
+
+        <!-- Quick-Launch Featured Channel Button -->
+        <div class="flex flex-wrap items-center gap-3 shrink-0">
+          <button
+            onclick="openChannelPlayer(0, 0)"
+            class="px-5 py-3 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-obsidian-950 font-display font-bold text-xs sm:text-sm tracking-wide transition-all shadow-lg shadow-emerald-500/20 flex items-center gap-2.5"
+          >
+            <svg class="w-4 h-4 fill-current" viewBox="0 0 24 24">
+              <polygon points="6 4 20 12 6 20 6 4"></polygon>
+            </svg>
+            <span>Watch Sports 1 Live</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filter Pills & Search Toolbar -->
+    <section class="flex flex-col sm:flex-row sm:items-center justify-between gap-3.5">
+      <!-- Sport Category Filter Pills -->
+      <div id="categoryFilterBar" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 sm:pb-0">
+        <!-- Populated dynamically -->
+      </div>
+
+      <!-- Search Input -->
+      <div class="relative w-full sm:w-64">
+        <svg class="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="11" cy="11" r="8"></circle>
+          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+        </svg>
+        <input
+          id="homeSearchInput"
+          type="text"
+          oninput="renderHomeChannelGrid()"
+          placeholder="Search channels or sports..."
+          class="w-full rounded-xl bg-obsidian-900/90 border border-white/10 pl-10 pr-3.5 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500/50 transition-colors"
+        />
+      </div>
+    </section>
+
+    <!-- Interactive Channels Grid (Sports 1 to Sports 4+) -->
+    <section id="homeChannelsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <!-- Populated dynamically -->
+    </section>
+
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- 4. VIEW B: RESPONSIVE WATCH VIEW (SIDE-BY-SIDE DESKTOP / STACKED MOB) -->
+  <!-- ===================================================================== -->
+  <section
+    id="watchView"
+    class="hidden flex-1 w-full max-w-[1680px] mx-auto lg:h-[calc(100vh-4rem)] lg:overflow-hidden px-0 sm:px-4 lg:px-6 py-0 sm:py-3 lg:py-4"
+  >
+    <div id="watchLayoutContainer" class="w-full h-full flex flex-col lg:flex-row gap-4 lg:gap-5 items-stretch">
+
+      <!-- LEFT / MAIN COLUMN: 16:9 VIDEO PLAYER + STREAM SOURCES BAR -->
+      <div
+        id="watchPlayerColumn"
+        class="w-full lg:flex-1 flex flex-col justify-between min-w-0 lg:h-full lg:overflow-y-auto no-scrollbar"
+      >
+        <!-- Sticky Mobile Wrapper so video stays visible while scrolling mobile channel list -->
+        <div class="sticky top-14 z-30 lg:static bg-obsidian-950/95 lg:bg-transparent backdrop-blur-md lg:backdrop-blur-none border-b border-white/10 lg:border-none">
+          <!-- 16:9 Video Player Stage -->
+          <div class="relative w-full max-w-[1160px] mx-auto">
+            <!-- Ambient Stadium Glow (Desktop) -->
+            <div id="ambientBacklight" class="stadium-backlight hidden sm:block"></div>
+
+            <!-- 16:9 Responsive Player Container -->
+            <div
+              id="playerStageWrapper"
+              class="relative z-10 w-full aspect-video lg:max-h-[calc(100vh-13.5rem)] bg-black sm:rounded-2xl overflow-hidden border-b sm:border border-white/10 shadow-[0_24px_60px_-15px_rgba(0,0,0,0.95)]"
+            >
+              <!-- Smooth Connection Shimmer Overlay -->
+              <div
+                id="iframeLoadingOverlay"
+                class="absolute inset-0 z-20 flex flex-col items-center justify-center bg-obsidian-950/90 backdrop-blur-md transition-opacity duration-300 pointer-events-none opacity-0"
+              >
+                <div class="w-11 h-11 rounded-full border-2 border-emerald-500/20 border-t-emerald-400 animate-spin mb-3"></div>
+                <p id="iframeLoadingLabel" class="text-xs font-medium text-slate-300 tracking-wide">
+                  Connecting to live broadcast...
+                </p>
+              </div>
+
+              <!-- Iframe Mount Target -->
+              <div id="iframeMountNode" class="w-full h-full"></div>
+            </div>
+          </div>
+
+          <!-- STREAM SOURCES & PLAYER CONTROLS BAR (DIRECTLY UNDER PLAYER) -->
+          <div class="w-full max-w-[1160px] mx-auto mt-0 sm:mt-3 px-3 py-2.5 sm:p-3.5 sm:rounded-2xl glass-panel flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-4">
+
+            <!-- Left: Available Stream Sources for Active Channel -->
+            <div class="flex items-center gap-2 min-w-0 flex-1 overflow-x-auto no-scrollbar py-0.5">
+              <div class="flex items-center gap-1.5 shrink-0 pr-1">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                <span class="text-[11px] font-mono uppercase tracking-wider text-slate-400 font-semibold">Sources:</span>
+              </div>
+
+              <!-- Stream Source Pills (Stream 1, Stream 2, Stream 3...) -->
+              <div id="watchStreamSourcesBar" class="flex items-center gap-2 shrink-0">
+                <!-- Populated dynamically -->
+              </div>
+            </div>
+
+            <!-- Right: Reconnect, Ambient Glow, Cinema & Fullscreen Controls -->
+            <div class="flex items-center justify-between sm:justify-end gap-2 shrink-0 border-t sm:border-t-0 border-white/10 pt-2 sm:pt-0">
+              <!-- Reconnect Button (Generates fresh 4-digit dynamic URL & reloads player) -->
+              <button
+                onclick="reconnectActiveStream()"
+                title="Stream buffering? Click to reconnect on a fresh dynamic route (R)"
+                class="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-500/15 hover:bg-emerald-500/25 border border-emerald-500/35 text-emerald-300 text-xs font-semibold transition-all"
+              >
+                <svg id="reconnectBtnIcon" class="w-3.5 h-3.5 transition-transform duration-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                  <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+                  <path d="M3 3v5h5"/>
+                  <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/>
+                  <path d="M16 16h5v5"/>
+                </svg>
+                <span>Reconnect</span>
+              </button>
+
+              <!-- Ambient Glow Button -->
+              <button
+                id="ambientGlowBtn"
+                onclick="toggleAmbientGlow()"
+                title="Toggle Stadium Ambient Backlight"
+                class="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl glass-pill text-xs font-medium text-emerald-400"
+              >
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="12" cy="12" r="5"></circle>
+                  <line x1="12" y1="1" x2="12" y2="3"></line>
+                  <line x1="12" y1="21" x2="12" y2="23"></line>
+                  <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                  <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                  <line x1="1" y1="12" x2="3" y2="12"></line>
+                  <line x1="21" y1="12" x2="23" y2="12"></line>
+                </svg>
+                <span class="hidden xl:inline">Glow</span>
+              </button>
+
+              <!-- Cinema Mode Button (Desktop) -->
+              <button
+                id="stageCinemaBtn"
+                onclick="toggleCinemaMode()"
+                title="Toggle Cinema Mode (T)"
+                class="hidden lg:flex items-center gap-1.5 px-3 py-2 rounded-xl glass-pill text-xs font-medium text-slate-300 hover:text-white"
+              >
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                </svg>
+                <span id="stageCinemaLabel">Cinema</span>
+              </button>
+
+              <!-- Fullscreen Button -->
+              <button
+                onclick="toggleFullscreenStage()"
+                title="Fullscreen Player (F)"
+                class="flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-xl glass-pill text-xs font-medium text-slate-200 hover:text-white"
+              >
+                <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/>
+                </svg>
+                <span>Fullscreen</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Compact Active Channel Metadata Strip -->
+        <div class="w-full max-w-[1160px] mx-auto px-4 sm:px-2 py-3 flex flex-wrap items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <span
+              id="watchActiveNumberBadge"
+              class="px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 font-mono text-xs font-bold text-emerald-400"
+            >
+              CH 01
+            </span>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 id="watchActiveChannelTitle" class="font-display text-base sm:text-lg font-bold text-white">
+                  Sports 1
+                </h2>
+                <span class="inline-flex items-center gap-1 text-[10px] font-mono font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/30">
+                  <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span>
+                  LIVE
+                </span>
+              </div>
+              <p id="watchActiveChannelTagline" class="text-xs text-slate-400">
+                Main Event Broadcast • Switch stream sources above or click Reconnect if buffering occurs.
+              </p>
+            </div>
+          </div>
+
+          <div class="hidden sm:flex items-center gap-2 text-[11px] text-slate-400 font-mono">
+            <span>ACTIVE FEED:</span>
+            <span id="watchActiveFeedName" class="text-emerald-400 font-semibold">Stream 1 (HD)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT SIDEBAR (DESKTOP SIDE-BY-SIDE / MOBILE STACKED UNDER PLAYER) -->
+      <aside
+        id="watchChannelsSidebar"
+        class="w-full lg:w-80 xl:w-96 shrink-0 px-3 sm:px-0 pb-6 lg:pb-0 flex flex-col lg:h-full overflow-hidden"
+      >
+        <div class="glass-panel rounded-2xl p-3.5 sm:p-4 flex flex-col h-full border border-white/10">
+          <!-- Sidebar Header -->
+          <div class="flex items-center justify-between pb-3 mb-3 border-b border-white/10 shrink-0">
+            <div class="flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              <h3 class="font-display text-xs sm:text-sm font-bold uppercase tracking-wider text-white">
+                Live Channels
+              </h3>
+            </div>
+            <span
+              id="sidebarChannelsCount"
+              class="text-[11px] font-mono font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/25"
+            >
+              4 LIVE
+            </span>
+          </div>
+
+          <!-- Independently Scrollable Channel List on Desktop / Stacked on Mobile -->
+          <div
+            id="watchSidebarChannelList"
+            class="flex-1 flex flex-col gap-2.5 lg:overflow-y-auto pr-0.5"
+          >
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </aside>
+
+    </div>
+  </section>
+
+  <!-- Minimalist Broadcast Footer (Shown on Home View) -->
+  <footer id="siteFooter" class="mt-auto border-t border-white/5 py-4 px-4 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-[11px] text-slate-500">
+    <div class="flex items-center gap-2">
+      <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+      <span class="font-display font-bold text-slate-400 tracking-wider">ARENA // LIVE</span>
+      <span>•</span>
+      <span>Powered by Dynamic Multi-Stream Routing</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <span>Player Shortcuts: <kbd class="px-1.5 py-0.5 rounded bg-white/5 text-slate-400 font-mono">R</kbd> Reconnect <kbd class="px-1.5 py-0.5 rounded bg-white/5 text-slate-400 font-mono">T</kbd> Cinema <kbd class="px-1.5 py-0.5 rounded bg-white/5 text-slate-400 font-mono">F</kbd> Fullscreen</span>
+    </div>
+  </footer>
+
+  <!-- Toast Notification Pill -->
+  <div
+    id="toastNotification"
+    class="fixed bottom-5 right-5 z-50 translate-y-12 opacity-0 pointer-events-none transition-all duration-300 glass-panel px-4 py-2.5 rounded-xl border border-emerald-500/35 shadow-2xl flex items-center gap-2.5"
+  >
+    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+    <span id="toastMessage" class="text-xs font-medium text-white">Connected</span>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- 5. APPLICATION ENGINE (`./channels.json` + DYNAMIC 4-DIGIT RESOLVER)  -->
+  <!-- ===================================================================== -->
+  <script>
+    /**
+     * ============================================================================
+     * BUILT-IN FALLBACK CHANNELS DATA (Matches `./channels.json` schema 1:1)
+     * ============================================================================
+     * On GitHub Pages:
+     * - Create a `channels.json` file in the same folder as `index.html`.
+     * - Whenever you want to add/remove channels or update stream links, just edit
+     *   `channels.json` on GitHub. All viewers will immediately fetch it!
+     * - You can paste either `{ "label": "Stream 1", "url": "https://..." }` OR
+     *   a full `<iframe src="https://ehgembxe.cfd/3u2rfhmp-9407" ...></iframe>` tag.
+     */
+    const FALLBACK_CHANNELS_DATA = {
+      updatedAt: "2026-10-22T00:00:00Z",
+      channels: [
+        {
+          id: "sports-1",
+          number: "01",
+          name: "Sports 1",
+          category: "Football",
+          tagline: "Premier League, Champions League & Main Event Finals",
+          badge: "LIVE",
+          accentColor: "emerald",
+          streams: [
+            {
+              label: "Stream 1 (HD)",
+              quality: "1080p",
+              url: '<iframe src="https://ehgembxe.cfd/3u2rfhmp-9407" width="100%" height="100%" frameborder="0" scrolling="no" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>'
+            },
+            {
+              label: "Stream 2 (Backup)",
+              quality: "1080p",
+              url: "https://ehgembxe.cfd/3u2rfhmp-9407"
+            },
+            {
+              label: "Stream 3 (Mirror)",
+              quality: "720p",
+              url: "https://ehgembxe.cfd/3u2rfhmp-9407"
+            }
+          ]
+        },
+        {
+          id: "sports-2",
+          number: "02",
+          name: "Sports 2",
+          category: "Cricket",
+          tagline: "International Test Series, T20 & Stadium Feed",
+          badge: "LIVE",
+          accentColor: "cyan",
+          streams: [
+            {
+              label: "Stream 1 (HD)",
+              quality: "1080p",
+              url: "https://ehgembxe.cfd/3u2rfhmp-9407"
+            },
+            {
+              label: "Stream 2 (Backup)",
+              quality: "720p",
+              url: "https://ehgembxe.cfd/3u2rfhmp-9407"
+            }
+          ]
+        },
+        {
+          id: "sports-3",
+          number: "03",
+          name: "Sports 3",
+          category: "Multi-Sport",
+          tagline: "Grand Slam Tennis, Basketball & Global Championships",
+          badge: "LIVE",
+          accentColor: "indigo",
+          streams: [
+            {
+              label: "Stream 1 (HD)",
+              quality: "1080p",
+              url: "https://ehgembxe.cfd/3u2rfhmp-9407"
+            },
+            {
+              label: "Stream 2 (Backup)",
+              quality: "720p",
+              url: "https://ehgembxe.cfd/3u2rfhmp-9407"
+            }
+          ]
+        },
+        {
+          id: "sports-4",
+          number: "04",
+          name: "Sports 4",
+          category: "Motorsport",
+          tagline: "Formula 1 Grand Prix, UFC Fight Night & Special Events",
+          badge: "LIVE",
+          accentColor: "rose",
+          streams: [
+            {
+              label: "Stream 1 (HD)",
+              quality: "1080p",
+              url: '<iframe src="https://ehgembxe.cfd/3u2rfhmp-9407" width="100%" height="100%" frameborder="0" scrolling="no" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen></iframe>'
+            },
+            {
+              label: "Stream 2 (Backup)",
+              quality: "1080p",
+              url: "https://ehgembxe.cfd/3u2rfhmp-9407"
+            },
+            {
+              label: "Stream 3 (Low Data)",
+              quality: "720p",
+              url: "https://ehgembxe.cfd/3u2rfhmp-9407"
+            }
+          ]
+        }
+      ]
+    };
+
+    // ============================================================================
+    // APPLICATION STATE
+    // ============================================================================
+    let channelsList = [];
+    let selectedCategory = "All";
+    let currentView = "home"; // 'home' | 'watch'
+    let activeChannelIndex = 0;
+    let activeStreamIndex = 0;
+    let hasWatchedInSession = false;
+    let isCinemaMode = false;
+    let isAmbientGlowActive = true;
+    let spinCounter = 0;
+
+    // ============================================================================
+    // SMART EMBED PARSER & SILENT DYNAMIC 4-DIGIT URL RANDOMIZER
+    // ============================================================================
+
+    /**
+     * Extracts the raw `src` URL if an `<iframe>` HTML snippet is provided,
+     * or returns the trimmed URL string directly.
+     */
+    function extractRawStreamUrl(input) {
+      if (!input || typeof input !== "string") return "";
+      const trimmed = input.trim();
+      const iframeSrcMatch = trimmed.match(/src=["']([^"']+)["']/i);
+      return iframeSrcMatch ? iframeSrcMatch[1].trim() : trimmed;
+    }
+
+    /**
+     * Generates a random 4-digit integer between 1000 and 9999.
+     */
+    function getRandom4Digits() {
+      return Math.floor(1000 + Math.random() * 9000).toString();
+    }
+
+    /**
+     * Silently detects any 4-digit number at the end of a URL path segment
+     * after a hyphen (e.g., `https://ehgembxe.cfd/3u2rfhmp-9407`) or `{random4}`
+     * and replaces it with a freshly generated 4-digit session number.
+     */
+    function resolveDynamicStreamUrl(rawUrlOrIframe) {
+      const cleanUrl = extractRawStreamUrl(rawUrlOrIframe);
+      if (!cleanUrl) return "";
+
+      const fresh4Digits = getRandom4Digits();
+
+      if (cleanUrl.includes("{random4}")) {
+        return cleanUrl.replace(/\{random4\}/g, fresh4Digits);
+      }
+
+      // Regex matches `-XXXX` (4 digits) right before end of string, `/`, `?`, or `#`
+      const dynamic4DigitRegex = /-(\d{4})(?=[/?#]|$)/;
+      if (dynamic4DigitRegex.test(cleanUrl)) {
+        return cleanUrl.replace(dynamic4DigitRegex, `-${fresh4Digits}`);
+      }
+
+      return cleanUrl;
+    }
+
+    /**
+     * Normalizes each channel & stream item from `channels.json` so the author
+     * can provide either objects or raw strings/iframes inside `streams`.
+     */
+    function normalizeChannelsPayload(rawPayload) {
+      const rawArray = Array.isArray(rawPayload)
+        ? rawPayload
+        : Array.isArray(rawPayload?.channels)
+        ? rawPayload.channels
+        : FALLBACK_CHANNELS_DATA.channels;
+
+      return rawArray.map((ch, idx) => {
+        const num = ch.number || String(idx + 1).padStart(2, "0");
+        const rawStreams = Array.isArray(ch.streams) ? ch.streams : [];
+
+        const normalizedStreams = rawStreams
+          .map((item, sIdx) => {
+            if (typeof item === "string") {
+              return {
+                label: `Stream ${sIdx + 1}`,
+                quality: sIdx === 0 ? "HD" : "",
+                url: extractRawStreamUrl(item)
+              };
+            }
+            if (item && typeof item === "object") {
+              return {
+                label: item.label || `Stream ${sIdx + 1}`,
+                quality: item.quality || "",
+                url: extractRawStreamUrl(item.url || item.src || item.iframe || "")
+              };
+            }
+            return null;
+          })
+          .filter((s) => s && s.url);
+
+        return {
+          id: ch.id || `sports-${idx + 1}`,
+          number: num,
+          name: ch.name || `Sports ${idx + 1}`,
+          category: ch.category || "Live Sports",
+          tagline: ch.tagline || "Live HD Sports Broadcast",
+          badge: ch.badge || "LIVE",
+          accentColor: ch.accentColor || "emerald",
+          streams: normalizedStreams
+        };
+      });
+    }
+
+    // ============================================================================
+    // FETCH `./channels.json` WITH AUTOMATIC FALLBACK
+    // ============================================================================
+    async function reloadChannelsJson(isManualClick = false) {
+      if (isManualClick) {
+        spinCounter += 360;
+        const icon = document.getElementById("reloadChannelsIcon");
+        if (icon) icon.style.transform = `rotate(${spinCounter}deg)`;
+      }
+
+      try {
+        const response = await fetch(`./channels.json?t=${Date.now()}`, {
+          cache: "no-store"
+        });
+        if (!response.ok) throw new Error("channels.json not found");
+        const jsonData = await response.json();
+        channelsList = normalizeChannelsPayload(jsonData);
+        if (isManualClick) showToast("Channel lineup synced from channels.json");
+      } catch (err) {
+        // Seamlessly load built-in fallback channels
+        channelsList = normalizeChannelsPayload(FALLBACK_CHANNELS_DATA);
+        if (isManualClick) showToast("Channel lineup refreshed");
+      }
+
+      // Clamp active indices if channel list changed
+      if (activeChannelIndex >= channelsList.length) activeChannelIndex = 0;
+
+      updateNavbarCounts();
+      renderCategoryFilters();
+      renderHomeChannelGrid();
+      renderWatchSidebarChannels();
+
+      if (currentView === "watch") {
+        renderWatchStreamSourcesBar();
+        updateWatchMetadata();
+      }
+    }
+
+    function updateNavbarCounts() {
+      const countEl = document.getElementById("navOnAirCount");
+      const sidebarCount = document.getElementById("sidebarChannelsCount");
+      const total = channelsList.length;
+      if (countEl) countEl.textContent = `${total} ${total === 1 ? "CHANNEL" : "CHANNELS"} ON AIR`;
+      if (sidebarCount) sidebarCount.textContent = `${total} LIVE`;
+    }
+
+    // ============================================================================
+    // VIEW A: HOME HUB RENDERING
+    // ============================================================================
+    function renderCategoryFilters() {
+      const bar = document.getElementById("categoryFilterBar");
+      if (!bar) return;
+
+      const uniqueCategories = ["All", ...new Set(channelsList.map((c) => c.category).filter(Boolean))];
+
+      bar.innerHTML = uniqueCategories
+        .map((cat) => {
+          const isActive = cat === selectedCategory;
+          return `
+            <button
+              onclick="setCategoryFilter('${cat.replace(/'/g, "\\'")}')"
+              class="px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all shrink-0 ${
+                isActive
+                  ? "bg-emerald-500 text-obsidian-950 font-semibold shadow-sm shadow-emerald-500/20"
+                  : "glass-pill text-slate-300 hover:text-white"
+              }"
+            >
+              ${cat}
+            </button>
+          `;
+        })
+        .join("");
+    }
+
+    function setCategoryFilter(category) {
+      selectedCategory = category;
+      renderCategoryFilters();
+      renderHomeChannelGrid();
+    }
+
+    function renderHomeChannelGrid() {
+      const grid = document.getElementById("homeChannelsGrid");
+      if (!grid) return;
+
+      const searchQuery = (document.getElementById("homeSearchInput")?.value || "").toLowerCase().trim();
+
+      const filtered = channelsList
+        .map((channel, index) => ({ channel, index }))
+        .filter(({ channel }) => {
+          const matchesCat = selectedCategory === "All" || channel.category === selectedCategory;
+          const matchesQuery =
+            !searchQuery ||
+            channel.name.toLowerCase().includes(searchQuery) ||
+            channel.category.toLowerCase().includes(searchQuery) ||
+            channel.tagline.toLowerCase().includes(searchQuery) ||
+            channel.number.toLowerCase().includes(searchQuery);
+          return matchesCat && matchesQuery;
+        });
+
+      if (filtered.length === 0) {
+        grid.innerHTML = `
+          <div class="col-span-full glass-panel rounded-2xl p-10 text-center space-y-3">
+            <p class="text-sm font-semibold text-white">No channels match your filter</p>
+            <p class="text-xs text-slate-400">Try clearing your search or selecting "All" categories.</p>
+            <button onclick="resetHomeFilters()" class="px-4 py-2 rounded-xl bg-emerald-500/20 text-emerald-300 text-xs font-semibold">
+              Show All Channels
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      grid.innerHTML = filtered
+        .map(({ channel, index }) => {
+          const streamCount = channel.streams.length;
+          return `
+            <article
+              onclick="openChannelPlayer(${index}, 0)"
+              class="channel-card group relative rounded-2xl p-5 flex flex-col justify-between cursor-pointer overflow-hidden"
+            >
+              <!-- Subtle Background Channel Number Watermark -->
+              <span class="
+
+              font-display font-extrabold text-6xl text-white/[0.03] group-hover:text-emerald-400/[0.07] transition-colors absolute -top-2 right-3 select-none pointer-events-none">
+                ${channel.number}
+              </span>
+
+              <div>
+                <!-- Top Row: Channel Code Badge & LIVE Dot -->
+                <div class="flex items-center justify-between gap-2 mb-4 relative z-10">
+                  <div class="flex items-center gap-2">
+                    <span class="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 font-mono text-xs font-bold text-emerald-400">
+                      CH ${channel.number}
+                    </span>
+                    <span class="px-2.5 py-0.5 rounded-md bg-white/[0.04] text-[11px] font-medium text-slate-300">
+                      ${channel.category}
+                    </span>
+                  </div>
+
+                  <span class="inline-flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/30">
+                    <span class="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping"></span>
+                    ${channel.badge}
+                  </span>
+                </div>
+
+                <!-- Channel Name & Tagline -->
+                <h2 class="font-display text-xl font-bold text-white group-hover:text-emerald-300 transition-colors mb-1.5">
+                  ${channel.name}
+                </h2>
+                <p class="text-xs text-slate-400 line-clamp-2 leading-relaxed mb-5">
+                  ${channel.tagline}
+                </p>
+              </div>
+
+              <!-- Bottom Row: Available Stream Pills & Watch CTA -->
+              <div class="pt-3.5 border-t border-white/10 flex items-center justify-between gap-2">
+                <div class="flex items-center gap-1.5 text-[11px] font-mono text-slate-400">
+                  <svg class="w-3.5 h-3.5 text-emerald-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                    <polyline points="2 17 12 22 22 17"></polyline>
+                    <polyline points="2 12 12 17 22 12"></polyline>
+                  </svg>
+                  <span>${streamCount} ${streamCount === 1 ? "Stream" : "Streams"} Ready</span>
+                </div>
+
+                <span class="inline-flex items-center gap-1 text-xs font-display font-bold text-emerald-400 group-hover:translate-x-1 transition-transform">
+                  <span>Watch Live</span>
+                  <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                    <polyline points="12 5 19 12 12 19"></polyline>
+                  </svg>
+                </span>
+              </div>
+            </article>
+          `;
+        })
+        .join("");
+    }
+
+    function resetHomeFilters() {
+      selectedCategory = "All";
+      const searchInput = document.getElementById("homeSearchInput");
+      if (searchInput) searchInput.value = "";
+      renderCategoryFilters();
+      renderHomeChannelGrid();
+    }
+
+    // ============================================================================
+    // VIEW B: WATCH VIEW & MULTI-STREAM PLAYER ENGINE
+    // ============================================================================
+    function openChannelPlayer(channelIdx, streamIdx = 0) {
+      if (!channelsList[channelIdx]) return;
+
+      activeChannelIndex = channelIdx;
+      const channel = channelsList[activeChannelIndex];
+      activeStreamIndex = Math.max(0, Math.min(streamIdx, channel.streams.length - 1));
+      hasWatchedInSession = true;
+
+      // Switch UI from Home Hub to Watch View
+      currentView = "watch";
+      document.getElementById("homeView").classList.add("hidden");
+      document.getElementById("siteFooter").classList.add("hidden");
+      document.getElementById("watchView").classList.remove("hidden");
+
+      // Update Navbar contextual buttons
+      document.getElementById("navBackToHomeBtn").classList.remove("hidden");
+      document.getElementById("navBackToHomeBtn").classList.add("flex");
+      document.getElementById("navResumePlayerBtn").classList.add("hidden");
+      document.getElementById("navResumePlayerBtn").classList.remove("flex");
+      document.getElementById("navCinemaBtn").classList.remove("lg:hidden");
+      document.getElementById("navCinemaBtn").classList.add("lg:flex");
+
+      // Update URL hash cleanly
+      const targetHash = `#watch/${channel.id}`;
+      if (window.location.hash !== targetHash) {
+        history.replaceState(null, "", targetHash);
+      }
+
+      renderWatchStreamSourcesBar();
+      renderWatchSidebarChannels();
+      updateWatchMetadata();
+      mountResolvedStreamIframe();
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function navigateToHome() {
+      currentView = "home";
+
+      // Cleanly unmount iframe so background audio stops while browsing Home Hub
+      const mountNode = document.getElementById("iframeMountNode");
+      if (mountNode) mountNode.innerHTML = "";
+
+      document.getElementById("watchView").classList.add("hidden");
+      document.getElementById("homeView").classList.remove("hidden");
+      document.getElementById("siteFooter").classList.remove("hidden");
+
+      document.getElementById("navBackToHomeBtn").classList.add("hidden");
+      document.getElementById("navBackToHomeBtn").classList.remove("flex");
+      document.getElementById("navCinemaBtn").classList.add("lg:hidden");
+      document.getElementById("navCinemaBtn").classList.remove("lg:flex");
+
+      // Show "Resume Sports X" button in navbar if user already watched a channel
+      if (hasWatchedInSession && channelsList[activeChannelIndex]) {
+        const resumeBtn = document.getElementById("navResumePlayerBtn");
+        const resumeText = document.getElementById("navResumePlayerText");
+        resumeText.textContent = `Resume ${channelsList[activeChannelIndex].name}`;
+        resumeBtn.classList.remove("hidden");
+        resumeBtn.classList.add("flex");
+      }
+
+      if (window.location.hash !== "#home") {
+        history.replaceState(null, "", "#home");
+      }
+    }
+
+    function resumeLastChannel() {
+      openChannelPlayer(activeChannelIndex, activeStreamIndex);
+    }
+
+    /**
+     * Renders the Stream Sources bar directly below the player so users can
+     * switch between Stream 1, Stream 2, Stream 3, etc. for the active channel.
+     */
+    function renderWatchStreamSourcesBar() {
+      const container = document.getElementById("watchStreamSourcesBar");
+      const channel = channelsList[activeChannelIndex];
+      if (!container || !channel) return;
+
+      container.innerHTML = channel.streams
+        .map((stream, sIdx) => {
+          const isSelected = sIdx === activeStreamIndex;
+          return `
+            <button
+              onclick="switchStreamSource(${sIdx})"
+              class="px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all flex items-center gap-2 shrink-0 ${
+                isSelected
+                  ? "bg-emerald-500 text-obsidian-950 font-bold shadow-md shadow-emerald-500/20"
+                  : "glass-pill text-slate-300 hover:text-white"
+              }"
+            >
+              <span class="w-1.5 h-1.5 rounded-full ${
+                isSelected ? "bg-obsidian-950" : "bg-emerald-400"
+              }"></span>
+              <span>${stream.label}</span>
+              ${
+                stream.quality
+                  ? `<span class="text-[10px] font-mono px-1.5 py-0.2 rounded ${
+                      isSelected
+                        ? "bg-obsidian-950/20 text-obsidian-950"
+                        : "bg-white/5 text-slate-400"
+                    }">${stream.quality}</span>`
+                  : ""
+              }
+            </button>
+          `;
+        })
+        .join("");
+    }
+
+    function switchStreamSource(streamIdx) {
+      const channel = channelsList[activeChannelIndex];
+      if (!channel || !channel.streams[streamIdx]) return;
+
+      activeStreamIndex = streamIdx;
+      renderWatchStreamSourcesBar();
+      updateWatchMetadata();
+      mountResolvedStreamIframe();
+      showToast(`Switched to ${channel.streams[streamIdx].label}`);
+    }
+
+    /**
+     * Renders the right-hand Live Channels sidebar (desktop side-by-side, mobile below player).
+     */
+    function renderWatchSidebarChannels() {
+      const listContainer = document.getElementById("watchSidebarChannelList");
+      if (!listContainer) return;
+
+      listContainer.innerHTML = channelsList
+        .map((channel, idx) => {
+          const isActive = idx === activeChannelIndex;
+          const streamCount = channel.streams.length;
+
+          return `
+            <button
+              onclick="openChannelPlayer(${idx}, 0)"
+              class="w-full text-left p-3 rounded-xl transition-all flex items-center justify-between gap-3 group border ${
+                isActive
+                  ? "bg-emerald-500/12 border-emerald-500/45 shadow-[0_0_24px_-6px_rgba(16,185,129,0.28)]"
+                  : "bg-obsidian-900/60 hover:bg-white/[0.04] border-white/[0.06] hover:border-white/15"
+              }"
+            >
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center font-mono text-xs font-bold shrink-0 transition-colors ${
+                  isActive
+                    ? "bg-emerald-500 text-obsidian-950 shadow-sm shadow-emerald-500/30"
+                    : "bg-obsidian-800 text-slate-300 group-hover:text-white border border-white/5"
+                }">
+                  ${channel.number}
+                </div>
+
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span class="font-display text-sm font-bold truncate ${
+                      isActive ? "text-white" : "text-slate-200 group-hover:text-white"
+                    }">
+                      ${channel.name}
+                    </span>
+                    <span class="text-[10px] font-mono text-slate-400 px-1.5 py-0.5 rounded bg-white/5">
+                      ${channel.category}
+                    </span>
+                  </div>
+                  <p class="text-[11px] text-slate-400 truncate mt-0.5">
+                    ${channel.tagline}
+                  </p>
+                </div>
+              </div>
+
+              <!-- Right Status: Equalizer Bars if Playing, or Stream Count -->
+              <div class="shrink-0 flex items-center">
+                ${
+                  isActive
+                    ? `
+                      <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-500/30">
+                        <div class="flex items-end gap-[2px] h-3.5">
+                          <span class="w-[2.5px] bg-emerald-400 rounded-full eq-bar-1"></span>
+                          <span class="w-[2.5px] bg-emerald-400 rounded-full eq-bar-2"></span>
+                          <span class="w-[2.5px] bg-emerald-400 rounded-full eq-bar-3"></span>
+                        </div>
+                        <span class="text-[10px] font-mono font-bold text-emerald-300">ON</span>
+                      </div>
+                    `
+                    : `
+                      <span class="text-[10px] font-mono text-slate-400 px-2 py-0.5 rounded-full bg-white/5">
+                        ${streamCount} ${streamCount === 1 ? "feed" : "feeds"}
+                      </span>
+                    `
+                }
+              </div>
+            </button>
+          `;
+        })
+        .join("");
+    }
+
+    function updateWatchMetadata() {
+      const channel = channelsList[activeChannelIndex];
+      if (!channel) return;
+      const stream = channel.streams[activeStreamIndex];
+
+      document.getElementById("watchActiveNumberBadge").textContent = `CH ${channel.number}`;
+      document.getElementById("watchActiveChannelTitle").textContent = channel.name;
+      document.getElementById("watchActiveChannelTagline").textContent = channel.tagline;
+      document.getElementById("watchActiveFeedName").textContent = stream ? stream.label : "Stream 1";
+    }
+
+    /**
+     * Resolves a fresh 4-digit dynamic URL silently under the hood and mounts
+     * the `<iframe ...>` inside the 16:9 player container.
+     */
+    function mountResolvedStreamIframe() {
+      const channel = channelsList[activeChannelIndex];
+      const stream = channel?.streams?.[activeStreamIndex];
+      const mountNode = document.getElementById("iframeMountNode");
+      const overlay = document.getElementById("iframeLoadingOverlay");
+      const overlayLabel = document.getElementById("iframeLoadingLabel");
+
+      if (!stream || !stream.url) {
+        mountNode.innerHTML = `
+          <div class="w-full h-full flex flex-col items-center justify-center text-slate-400 text-xs p-6 text-center">
+            No stream URL configured for ${channel?.name || "this channel"}.
+          </div>
+        `;
+        return;
+      }
+
+      // Silently generate a fresh 4-digit suffix (e.g., -9407 -> -4829)
+      const finalStreamUrl = resolveDynamicStreamUrl(stream.url);
+
+      overlayLabel.textContent = `Connecting to ${channel.name} • ${stream.label}...`;
+      overlay.classList.remove("opacity-0");
+
+      mountNode.innerHTML = `
+        <iframe
+          id="activeBroadcastIframe"
+          src="${finalStreamUrl}"
+          width="100%"
+          height="100%"
+          frameborder="0"
+          scrolling="no"
+          allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+          allowfullscreen
+          class="w-full h-full border-0"
+        ></iframe>
+      `;
+
+      const iframeEl = document.getElementById("activeBroadcastIframe");
+      const hideOverlay = () => overlay.classList.add("opacity-0");
+      iframeEl.addEventListener("load", hideOverlay);
+      setTimeout(hideOverlay, 900);
+    }
+
+    /**
+     * Triggered when user clicks "Reconnect" (or presses R).
+     * Generates a brand-new 4-digit dynamic URL and reloads the iframe.
+     */
+    function reconnectActiveStream() {
+      spinCounter += 360;
+      const icon = document.getElementById("reconnectBtnIcon");
+      if (icon) icon.style.transform = `rotate(${spinCounter}deg)`;
+
+      mountResolvedStreamIframe();
+      showToast("Reconnected on a fresh stream session");
+    }
+
+    // ============================================================================
+    // PLAYER VIEW CONTROLS (CINEMA MODE, AMBIENT GLOW, FULLSCREEN)
+    // ============================================================================
+    function toggleCinemaMode() {
+      isCinemaMode = !isCinemaMode;
+      const sidebar = document.getElementById("watchChannelsSidebar");
+      const navLabel = document.getElementById("navCinemaLabel");
+      const stageLabel = document.getElementById("stageCinemaLabel");
+      const stageBtn = document.getElementById("stageCinemaBtn");
+
+      if (isCinemaMode) {
+        sidebar.classList.add("lg:hidden");
+        if (navLabel) navLabel.textContent = "Exit Cinema";
+        if (stageLabel) stageLabel.textContent = "Standard";
+        if (stageBtn) stageBtn.classList.add("text-emerald-400", "border-emerald-500/35");
+      } else {
+        sidebar.classList.remove("lg:hidden");
+        if (navLabel) navLabel.textContent = "Cinema Mode";
+        if (stageLabel) stageLabel.textContent = "Cinema";
+        if (stageBtn) stageBtn.classList.remove("text-emerald-400", "border-emerald-500/35");
+      }
+    }
+
+    function toggleAmbientGlow() {
+      isAmbientGlowActive = !isAmbientGlowActive;
+      const backlight = document.getElementById("ambientBacklight");
+      const btn = document.getElementById("ambientGlowBtn");
+
+      if (isAmbientGlowActive) {
+        backlight.style.opacity = "1";
+        btn.classList.add("text-emerald-400");
+        btn.classList.remove("text-slate-400");
+      } else {
+        backlight.style.opacity = "0";
+        btn.classList.remove("text-emerald-400");
+        btn.classList.add("text-slate-400");
+      }
+    }
+
+    function toggleFullscreenStage() {
+      const stage = document.getElementById("playerStageWrapper");
+      if (!document.fullscreenElement) {
+        if (stage.requestFullscreen) stage.requestFullscreen();
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    }
+
+    // ============================================================================
+    // SPLASH SCREEN, HASH ROUTING & TOASTS
+    // ============================================================================
+    function runSplashSequence() {
+      const splash = document.getElementById("splashScreen");
+      const bar = document.getElementById("splashProgressBar");
+      const status = document.getElementById("splashStatusText");
+
+      setTimeout(() => {
+        bar.style.width = "68%";
+        status.textContent = "Syncing live sports channels...";
+      }, 380);
+
+      setTimeout(() => {
+        bar.style.width = "100%";
+        status.textContent = "Arena ready.";
+      }, 920);
+
+      setTimeout(() => {
+        splash.classList.add("splash-hidden");
+        setTimeout(() => {
+          splash.style.display = "none";
+        }, 650);
+      }, 1280);
+    }
+
+    function handleInitialHashRoute() {
+      const hash = window.location.hash || "";
+      if (hash.startsWith("#watch/")) {
+        const channelId = hash.replace("#watch/", "").trim();
+        const foundIdx = channelsList.findIndex((c) => c.id === channelId);
+        if (foundIdx !== -1) {
+          openChannelPlayer(foundIdx, 0);
+        }
+      }
+    }
+
+    let toastTimer = null;
+    function showToast(msg) {
+      const toast = document.getElementById("toastNotification");
+      const label = document.getElementById("toastMessage");
+      if (!toast || !label) return;
+
+      label.textContent = msg;
+      toast.classList.remove("translate-y-12", "opacity-0");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => {
+        toast.classList.add("translate-y-12", "opacity-0");
+      }, 2600);
+    }
+
+    // ============================================================================
+    // INITIALIZE APPLICATION
+    // ============================================================================
+    window.addEventListener("DOMContentLoaded", async () => {
+      runSplashSequence();
+      await reloadChannelsJson(false);
+      handleInitialHashRoute();
+
+      // Keyboard Shortcuts for Watch View
+      window.addEventListener("keydown", (e) => {
+        if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement?.tagName)) return;
+        if (currentView !== "watch") return;
+
+        if (e.key.toLowerCase() === "f") {
+          e.preventDefault();
+          toggleFullscreenStage();
+        } else if (e.key.toLowerCase() === "t") {
+          e.preventDefault();
+          toggleCinemaMode();
+        } else if (e.key.toLowerCase() === "r") {
+          e.preventDefault();
+          reconnectActiveStream();
+        } else if (e.key === "Escape") {
+          if (isCinemaMode) {
+            toggleCinemaMode();
+          } else {
+            navigateToHome();
+          }
+        }
+      });
+    });
+  </script>
+</body>
+</html>

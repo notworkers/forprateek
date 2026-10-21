@@ -1,0 +1,40 @@
+{
+    "channels": [
+        {
+            "id": "sports-1",
+            "name": "Sports 1",
+            "category": "Other",
+            "isLive": true,
+            "streams": [
+                "https://ehgembxe.cfd/3u2rfhmp-9407"
+            ]
+        },
+        {
+            "id": "sports-2",
+            "name": "Sports 2",
+            "category": "Other",
+            "isLive": true,
+            "streams": [
+                "https://ehgembxe.cfd/3u2rfhmp-9408"
+            ]
+        },
+        {
+            "id": "sports-3",
+            "name": "Sports 3",
+            "category": "Other",
+            "isLive": true,
+            "streams": [
+                "https://ehgembxe.cfd/3u2rfhmp-9409"
+            ]
+        },
+        {
+            "id": "sports-4",
+            "name": "Sports 4",
+            "category": "Other",
+            "isLive": true,
+            "streams": [
+                "https://ehgembxe.cfd/3u2rfhmp-9407"
+            ]
+        }
+    ]
+}
