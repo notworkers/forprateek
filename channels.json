@@ -1,35 +1,34 @@
 {
     "channels": [
         {
-            "id": "sports-1",
-            "name": "Sports 1",
+            "id": "tnt-sports-1",
+            "name": "TNT Sports 1",
             "category": "Other",
             "isLive": true,
             "streams": [
-                "https://ehgembxe.cfd/3u2rfhmp-9407"
+                "https://ehgembxe.cfd/e0lyrkhr-0000"
             ]
         },
         {
-            "id": "sports-2",
-            "name": "Sports 2",
+            "id": "tnt-sports-2",
+            "name": "TNT Sports 2",
             "category": "Other",
             "isLive": true,
             "streams": [
-                "https://ehgembxe.cfd/3u2rfhmp-9408"
             ]
         },
         {
-            "id": "sports-3",
-            "name": "Sports 3",
+            "id": "tnt-sports-3",
+            "name": "TNT Sports 3",
             "category": "Other",
             "isLive": true,
             "streams": [
-                "https://ehgembxe.cfd/3u2rfhmp-9409"
+                
             ]
         },
         {
-            "id": "sports-4",
-            "name": "Sports 4",
+            "id": "tnt-sports-4",
+            "name": "TNT Sports 4",
             "category": "Other",
             "isLive": true,
             "streams": [
