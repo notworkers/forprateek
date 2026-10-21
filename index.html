@@ -3,7 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="Permissions-Policy" content="popups=(self), popups-to-escape-sandbox=()">
   <title>ARENA // LIVE — Sports Broadcast Network</title>
 
   <!-- Tailwind CSS CDN -->
@@ -766,14 +765,16 @@
               return {
                 label: `Stream ${sIdx + 1}`,
                 quality: sIdx === 0 ? "HD" : "",
-                url: extractRawStreamUrl(item)
+                url: extractRawStreamUrl(item),
+                sandbox: true
               };
             }
             if (item && typeof item === "object") {
               return {
                 label: item.label || `Stream ${sIdx + 1}`,
                 quality: item.quality || "",
-                url: extractRawStreamUrl(item.url || item.src || item.iframe || "")
+                url: extractRawStreamUrl(item.url || item.src || item.iframe || ""),
+                sandbox: item.sandbox !== false
               };
             }
             return null;
@@ -1219,6 +1220,8 @@
         <iframe
           id="activeBroadcastIframe"
           src="${finalStreamUrl}"
+          ${stream.sandbox !== false ? 'sandbox="allow-scripts allow-same-origin allow-presentation allow-forms"' : ""}
+          referrerpolicy="no-referrer"
           width="100%"
           height="100%"
           frameborder="0"
