@@ -295,7 +295,6 @@
   <!-- ===================================================================== -->
   <main id="homeView" class="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-9 space-y-7">
 
-    <!-- Pop-up warning banner -->
     <div id="adblockBanner" class="relative rounded-2xl border border-amber-500/40 bg-amber-500/10 px-4 py-3.5 pr-11 text-xs sm:text-sm text-amber-100 leading-relaxed">
       <div class="flex items-start gap-3">
         <svg class="w-5 h-5 text-amber-400 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
@@ -316,7 +315,6 @@
       </div>
       <button onclick="dismissAdblockBanner()" title="Dismiss" class="absolute top-2.5 right-3 text-amber-300/70 hover:text-white text-lg leading-none">&times;</button>
     </div>
-
     <!-- Compact Hero Broadcast Strip -->
     <section class="relative overflow-hidden rounded-3xl glass-panel p-6 sm:p-8 border border-white/10 shadow-2xl">
       <div class="absolute -top-24 -right-24 w-80 h-80 bg-emerald-500/15 rounded-full blur-[90px] pointer-events-none"></div>
@@ -526,10 +524,6 @@
                 Main Event Broadcast • Switch stream sources above or click Reconnect if buffering occurs.
               </p>
             </div>
-          </div>
-
-          <div class="w-full order-last text-[11px] text-amber-300/90 bg-amber-500/10 border border-amber-500/25 rounded-lg px-3 py-1.5">
-            Pop-ups opening? Install uBlock Origin (Firefox) or use Brave. This player can't block them on its own.
           </div>
 
           <div class="hidden sm:flex items-center gap-2 text-[11px] text-slate-400 font-mono">
@@ -791,16 +785,14 @@
               return {
                 label: `Stream ${sIdx + 1}`,
                 quality: sIdx === 0 ? "HD" : "",
-                url: extractRawStreamUrl(item),
-                sandbox: false
+                url: extractRawStreamUrl(item)
               };
             }
             if (item && typeof item === "object") {
               return {
                 label: item.label || `Stream ${sIdx + 1}`,
                 quality: item.quality || "",
-                url: extractRawStreamUrl(item.url || item.src || item.iframe || ""),
-                sandbox: item.sandbox === true
+                url: extractRawStreamUrl(item.url || item.src || item.iframe || "")
               };
             }
             return null;
@@ -1043,11 +1035,6 @@
       updateWatchMetadata();
       mountResolvedStreamIframe();
 
-      if (!adblockToastShown) {
-        adblockToastShown = true;
-        showToast("Heads up: use uBlock Origin or Brave to avoid pop-ups");
-      }
-
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
@@ -1251,8 +1238,6 @@
         <iframe
           id="activeBroadcastIframe"
           src="${finalStreamUrl}"
-          ${stream.sandbox === true ? 'sandbox="allow-scripts allow-same-origin allow-presentation allow-forms"' : ""}
-          referrerpolicy="no-referrer"
           width="100%"
           height="100%"
           frameborder="0"
@@ -1367,14 +1352,6 @@
       }
     }
 
-    function dismissAdblockBanner() {
-      const b = document.getElementById("adblockBanner");
-      if (b) b.classList.add("hidden");
-      try { sessionStorage.setItem("adblockBannerDismissed", "1"); } catch (e) {}
-    }
-
-    let adblockToastShown = false;
-
     let toastTimer = null;
     function showToast(msg) {
       const toast = document.getElementById("toastNotification");
@@ -1394,11 +1371,6 @@
     // ============================================================================
     window.addEventListener("DOMContentLoaded", async () => {
       runSplashSequence();
-      try {
-        if (sessionStorage.getItem("adblockBannerDismissed") === "1") {
-          document.getElementById("adblockBanner")?.classList.add("hidden");
-        }
-      } catch (e) {}
       await reloadChannelsJson(false);
       handleInitialHashRoute();
 
